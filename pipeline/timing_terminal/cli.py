@@ -7,10 +7,16 @@ from pathlib import Path
 from .models import ChartData, PhasePoint, TimeValue
 
 
+_EXPECTED_POINT_COUNT = 4
+
+
 def _load_fixture_points() -> list[PhasePoint]:
     """Return a tiny, deterministic set of PhasePoints from in-memory fixtures.
 
     This keeps Story 1.1 self-contained without real external providers.
+
+    Tests can monkeypatch this function to simulate missing or stale fixture data
+    in order to drive `dataQuality` away from "complete".
     """
 
     base_ts = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
@@ -30,6 +36,21 @@ def _load_fixture_points() -> list[PhasePoint]:
     return points
 
 
+def _infer_data_quality(points: list[PhasePoint]) -> str:
+    """Infer a simple dataQuality flag from the available points.
+
+    - No points      → "stale" (nothing to emit)
+    - Some but < N   → "partial" (fixtures incomplete)
+    - N or more     → "complete"
+    """
+
+    if not points:
+        return "stale"
+    if len(points) < _EXPECTED_POINT_COUNT:
+        return "partial"
+    return "complete"
+
+
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
     phase_series: list[TimeValue] = []
@@ -39,7 +60,7 @@ def _build_chart_data(points: list[PhasePoint]) -> ChartData:
         phase_series.append(TimeValue(time=ts, value=p.phase_score))
 
     last_updated = datetime.now(timezone.utc)
-    data_quality: str = "complete"
+    data_quality: str = _infer_data_quality(points)
     return ChartData(
         btc_price=btc_price_series,
         phase_score=phase_series,
