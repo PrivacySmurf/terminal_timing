@@ -1,0 +1,13 @@
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+# AI debug files
+.ai/*
