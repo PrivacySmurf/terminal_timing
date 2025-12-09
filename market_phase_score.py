@@ -7,7 +7,9 @@ Focused implementation with noise reduction for cleaner signals.
 import pandas as pd
 import numpy as np
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
+import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import requests
@@ -503,6 +505,10 @@ def create_single_smoothed_chart(
 if __name__ == "__main__":
     logger.info("=== Market Phase Score Analysis ===")
 
+    # Ensure plots directory exists for all outputs
+    plots_dir = Path("plots")
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
     # Fetch data
     sopr_df = fetch_chartinspect_data(
         "https://chartinspect.com/api/charts/onchain/lth-sopr",
@@ -519,6 +525,12 @@ if __name__ == "__main__":
         sopr_df['btc_price'].copy() if 'btc_price' in sopr_df.columns else None
     )
 
+    if btc_price is None:
+        logger.error("BTC price series not found in ChartInspect responses; cannot export phase series with price")
+    else:
+        # Ensure price is sorted and aligned by date index
+        btc_price = btc_price.sort_index()
+
     # Prepare data - align on date index
     df = pd.DataFrame({
         'lth_sopr': sopr_df['lth_sopr'],
@@ -527,6 +539,10 @@ if __name__ == "__main__":
 
     # Drop rows where either metric is missing
     df = df.dropna()
+
+    # Attach BTC price to the working DataFrame if available
+    if btc_price is not None:
+        df['btc_price'] = btc_price.reindex(df.index)
 
     logger.info(f"Data range: {df.index[0]} to {df.index[-1]}")
     logger.info(f"Total records: {len(df)}")
@@ -572,7 +588,7 @@ if __name__ == "__main__":
     # Comparison chart
     fig_comparison = create_comparison_chart(df, btc_price, smoothing_windows)
     fig_comparison.write_html(
-        "plots/market_phase_smoothing_comparison.html",
+        str(plots_dir / "market_phase_smoothing_comparison.html"),
         config={'displayModeBar': True, 'displaylogo': False}
     )
     logger.info("✓ Saved: plots/market_phase_smoothing_comparison.html")
@@ -584,7 +600,7 @@ if __name__ == "__main__":
         'Savitzky-Golay'
     )
     fig_clean.write_html(
-        "plots/market_phase_clean.html",
+        str(plots_dir / "market_phase_clean.html"),
         config={'displayModeBar': True, 'displaylogo': False}
     )
     logger.info("✓ Saved: plots/market_phase_clean.html")
@@ -608,14 +624,67 @@ if __name__ == "__main__":
 
     logger.info("\n" + "="*60)
 
-    # Export CSV
+    # Export CSV + JSON artifacts for frontend consumption
     logger.info("\n=== Exporting Data ===")
+
+    plots_dir = Path("plots")
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    # Enriched CSV: timestamp, phase_score, btc_price
     export_df = pd.DataFrame({
         'timestamp': df.index,
-        'value': df['market_phase_savgol']
+        'phase_score': df['market_phase_savgol']
     })
-    export_df.to_csv('plots/market_phase_score.csv', index=False)
-    logger.info(f"✓ Saved: plots/market_phase_score.csv ({len(export_df)} records)")
+
+    if 'btc_price' in df.columns:
+        export_df['btc_price'] = df['btc_price']
+    else:
+        logger.warning("btc_price column missing on df; CSV will not include price column")
+
+    csv_path = plots_dir / 'market_phase_score.csv'
+    export_df.to_csv(csv_path, index=False)
+    logger.info(f"✓ Saved: {csv_path} ({len(export_df)} records)")
+
+    # JSON phase series artifact for TradingView frontend
+    try:
+        logger.info("Exporting phase_series.json for frontend")
+
+        # Format timestamps as ISO date strings with Z suffix (assume daily candles at 00:00Z)
+        iso_timestamps = export_df['timestamp'].dt.strftime("%Y-%m-%dT00:00:00Z")
+        series_records = export_df.copy()
+        series_records['timestamp'] = iso_timestamps
+
+        # Build current snapshot
+        latest_row = series_records.iloc[-1]
+        phase_score = float(latest_row['phase_score'])
+
+        if phase_score < 20:
+            zone = "retention"
+        elif phase_score > 80:
+            zone = "distribution"
+        else:
+            zone = "mid_cycle"
+
+        current = {
+            'timestamp': latest_row['timestamp'],
+            'phase_score': phase_score,
+            'btc_price': float(latest_row['btc_price']) if 'btc_price' in latest_row else None,
+            'zone': zone,
+        }
+
+        phase_series = {
+            'last_updated': datetime.now(timezone.utc).isoformat(),
+            'current': current,
+            'series': series_records.to_dict(orient='records'),
+        }
+
+        json_path = plots_dir / 'phase_series.json'
+        with json_path.open('w') as f:
+            json.dump(phase_series, f)
+
+        logger.info(f"✓ Saved: {json_path}")
+    except Exception as e:
+        logger.error(f"Failed to export phase_series.json: {e}")
 
     logger.info("\n" + "="*60)
     logger.info("Analysis complete!")
