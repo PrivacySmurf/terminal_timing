@@ -1,4 +1,4 @@
-## Product Scope
+# Product Scope
 
 ### MVP - Minimum Viable Product (Phase 1: Marcus Segment Only)
 

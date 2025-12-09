@@ -1,4 +1,4 @@
-## User Journeys
+# User Journeys
 
 This shard captures the key user journeys that drive requirements for the system. The full narrative detail remains in `docs/prd.md`; here we focus on the main flows and extracted requirements.
 

@@ -1,4 +1,4 @@
-## Project Classification
+# Project Classification
 
 **Technical Type:** Web App  
 **Domain:** Fintech (Cryptocurrency/Trading)  
