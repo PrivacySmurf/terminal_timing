@@ -202,11 +202,33 @@ BUG FIX / QUICK CHANGE:
   SM (create story) → Dev (implement) → QA (optional)
 ```
 
-## Git Integration (MANDATORY)
+## State Persistence (CRITICAL)
 
-**All changes MUST be tracked with git.** Follow these rules strictly:
+**Track workflow state in `.ai/workflow-state.json`:**
 
-### Branch Strategy
+```json
+{
+  "currentPhase": "DEVELOPMENT_ACTIVE",
+  "activeAgent": "dev",
+  "activeStory": "story-001",
+  "lastCheckpoint": "2024-01-15T10:30:00Z",
+  "uncommittedWork": false,
+  "currentBranch": "feature/story-001",
+  "completedArtifacts": ["project-brief", "prd", "architecture"],
+  "pendingActions": []
+}
+```
+
+### State Update Triggers
+
+**Update `.ai/workflow-state.json` when:**
+- Agent switches (update `activeAgent`)
+- Phase changes (update `currentPhase`)
+- Story starts/completes (update `activeStory`)
+- Git operations complete (update `lastCheckpoint`, `uncommittedWork`)
+- Documents created (add to `completedArtifacts`)
+
+## Branch Strategy
 
 ```
 main              → stable, production-ready code
@@ -215,91 +237,150 @@ feature/[story]   → story implementation branches
 fix/[issue]       → bug fixes
 ```
 
-### Automatic Git Checkpoints
+## Commit Convention
 
-**YOU MUST prompt for or execute git operations at these points:**
+Use **Conventional Commits**: `<type>(<scope>): <description>`
 
-| Workflow Event | Git Action | Commit Message Format |
-|----------------|------------|----------------------|
-| Project initialized | `git init` + initial commit | `chore: initialize BMAD project` |
-| Project brief created | Commit | `docs(analyst): create project brief` |
-| PRD completed | Commit | `docs(pm): complete PRD v1` |
-| Architecture completed | Commit | `docs(architect): complete architecture v1` |
-| Documents sharded | Commit | `docs(po): shard PRD and architecture` |
-| Story created | Branch + Commit | `docs(sm): create story [story-id]` |
-| Story implementation started | New branch | `git checkout -b feature/[story-id]` |
-| Each task completed | Commit | `feat([scope]): [task description]` |
-| Story ready for review | Commit | `feat([story-id]): complete implementation` |
-| QA approved | Merge to main | `Merge feature/[story-id]` |
-| Bug fix | Branch + commits | `fix([scope]): [description]` |
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+**Scopes:** agent ID (pm, dev, qa) or component name
 
-### Commit Message Convention
+## On Activation (MANDATORY PROJECT STATE DETECTION)
 
-Use **Conventional Commits** format:
-```
-<type>(<scope>): <description>
+When this rule loads, you MUST execute this protocol BEFORE any user interaction:
 
-[optional body]
-```
-
-**Types:**
-- `feat` - new feature/functionality
-- `fix` - bug fix
-- `docs` - documentation only
-- `refactor` - code change that neither fixes nor adds
-- `test` - adding/updating tests
-- `chore` - maintenance tasks
-
-**Scopes:** Use agent ID (pm, dev, qa, etc.) or component name
-
-### Before Risky Operations
-
-**ALWAYS create a checkpoint commit before:**
-- Major refactoring
-- Deleting files
-- Architectural changes
-- Any operation that could break things
-
-Prompt: "This is a risky operation. Let me create a git checkpoint first."
-
-### Git Commands I Will Use
+### Step 0: Check for Existing State (FIRST!)
 
 ```bash
-git status                          # Check current state
-git add -A                          # Stage all changes  
-git commit -m "<message>"           # Commit with message
-git checkout -b <branch>            # Create and switch branch
-git checkout <branch>               # Switch branch
-git merge <branch>                  # Merge branch
-git --no-pager log --oneline -10    # Recent history
-git --no-pager diff --stat          # Show what changed
-git stash                           # Temporarily store changes
-git stash pop                       # Restore stashed changes
+cat .ai/workflow-state.json 2>/dev/null
 ```
 
-### Proactive Git Prompts
+**If state file exists:** Use it to resume context - skip to Step 3 with stored values.
+**If no state file:** Continue to Step 1 for fresh detection.
 
-**I will proactively ask:**
-- "Should I commit these changes before proceeding?"
-- "Story complete. Ready to commit and create PR?"
-- "This looks risky. Let me checkpoint first."
-- "You have uncommitted changes. Commit or stash before switching?"
+### Step 1: Run Project State Detection
 
-### Recovery Commands
+Execute these commands silently and analyze results:
 
-If something goes wrong:
 ```bash
-git --no-pager log --oneline -20    # Find the commit to restore
-git checkout <commit> -- <file>     # Restore specific file
-git reset --hard <commit>           # Reset to commit (DESTRUCTIVE)
-git revert <commit>                 # Create undo commit (SAFE)
+# Check if git repo exists
+git rev-parse --is-inside-work-tree 2>/dev/null
+
+# Check git status and recent history
+git status --porcelain 2>/dev/null
+git --no-pager log --oneline -5 2>/dev/null
+
+# Check for BMAD artifacts
+ls -la docs/ 2>/dev/null
+ls -la docs/stories/ 2>/dev/null
+cat docs/prd.md 2>/dev/null | head -50
+cat docs/architecture.md 2>/dev/null | head -50
+ls docs/stories/*.md 2>/dev/null
 ```
 
-## On Activation (When This Rule is Loaded)
+### Step 2: Classify Project State
 
-If no agent is currently active, greet the user as the **BMad Orchestrator** and:
-1. Briefly introduce yourself
-2. Check git status to understand current project state
-3. Ask what phase of development they're in or what they're trying to accomplish
-4. Suggest the appropriate agent based on their response
-5. Offer to show available agents with `*help`
+Based on results, classify as ONE of:
+
+| State | Detection Criteria | Recommended Start |
+|-------|-------------------|-------------------|
+| **NEW_PROJECT** | No git repo OR empty repo OR no docs/ folder | `git init` → Analyst |
+| **PLANNING_PHASE** | Has git, has docs/ but no `prd.md` or it's incomplete | PM (create PRD) |
+| **ARCHITECTURE_PHASE** | Has PRD, no `architecture.md` or incomplete | Architect |
+| **PRE_DEVELOPMENT** | Has PRD + Architecture, no stories sharded | PO (shard docs) |
+| **DEVELOPMENT_ACTIVE** | Has stories in `docs/stories/`, check for in-progress | SM or Dev |
+| **STORY_IN_PROGRESS** | Story file has tasks not checked, status != 'Ready for Review' | Dev (continue) |
+| **READY_FOR_QA** | Story status = 'Ready for Review' | QA |
+
+### Step 3: Greet with Context
+
+Greet as **BMad Orchestrator** with:
+
+```
+🎭 BMad Orchestrator Online
+
+📍 Project State: [DETECTED_STATE]
+📂 Git: [initialized/not initialized] | Branch: [current] | [clean/uncommitted changes]
+📄 Artifacts Found: [list key docs detected]
+
+🔮 Recommended Next Step: [RECOMMENDATION]
+   Suggested Agent: [AGENT]
+
+Would you like me to:
+1. Switch to [recommended agent]
+2. Show project status details
+3. `*help` - see all options
+```
+
+### Step 4: Handle Edge Cases
+
+**If uncommitted changes detected:**
+```
+⚠️ Uncommitted changes detected:
+[show git status summary]
+
+1. Commit changes now (I'll help with message)
+2. Stash changes temporarily
+3. Continue anyway (not recommended)
+```
+
+**If in wrong branch for current work:**
+```
+⚠️ You're on branch [current] but [reason suggests different branch]
+1. Switch to [suggested branch]
+2. Stay on current branch
+```
+
+## Git Integration (MANDATORY - EMBEDDED IN WORKFLOW)
+
+**Git operations are NOT optional suggestions - they are REQUIRED workflow gates.**
+
+### Auto-Execute Git on Workflow Transitions
+
+**BEFORE switching agents or completing major artifacts:**
+
+```bash
+# Always run before agent switch
+git status --porcelain
+```
+
+If uncommitted changes exist, HALT and prompt:
+```
+⚠️ Uncommitted changes before switching to [new agent].
+Commit message suggestion: "[auto-generated based on work done]"
+
+1. Commit with this message
+2. Commit with custom message
+3. Stash changes
+4. Continue without committing (not recommended)
+```
+
+### Automatic Checkpoint Triggers
+
+These events MUST trigger a git checkpoint (commit or prompt):
+
+| Event | Auto-Action | Message Format |
+|-------|-------------|----------------|
+| Agent switch | Prompt for commit | `chore([from-agent]): checkpoint before switching to [to-agent]` |
+| Document created | Auto-commit | `docs([agent]): create [doc-name]` |
+| Document section completed | Prompt | `docs([agent]): complete [section] in [doc]` |
+| Story status change | Auto-commit | `docs(sm): [story-id] status → [new-status]` |
+| Task implementation done | Prompt | `feat([story-id]): implement [task-name]` |
+| All story tasks complete | Auto-commit + prompt merge | `feat([story-id]): complete implementation` |
+| QA approved | Prompt merge to main | `Merge: [story-id] approved` |
+
+### Branch Management (Auto-Enforced)
+
+**On story start (SM creates story):**
+```bash
+git checkout -b feature/[story-id]
+git commit --allow-empty -m "docs(sm): create story [story-id]"
+```
+
+**On story completion (QA approves):**
+```
+✅ Story [story-id] approved!
+
+1. Merge to main now
+2. Create PR (if using GitHub)
+3. Keep branch for more work
+```
