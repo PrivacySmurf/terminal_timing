@@ -79,6 +79,34 @@ DEVELOPMENT CYCLE:
   SM (create story) → Dev (implement) → QA (review) → repeat
 ```
 
+## Timing Terminal Pipeline (MVP)
+
+For the Timing Terminal project, the MVP pipeline lives under `pipeline/`.
+
+### Running the pipeline locally
+
+```bash
+cd pipeline
+uv run timing-terminal-pipeline
+```
+
+This will:
+
+- Execute the in-memory demo pipeline for Story 1.1.
+- Write `pipeline/out/chart-data.json` with the architecture-defined schema:
+  - `btcPrice[]` and `phaseScore[]` arrays with aligned Unix timestamps (seconds, UTC).
+  - `lastUpdated` as an ISO 8601 string ending with `Z`.
+  - `dataQuality` as `complete`, `partial`, or `stale`.
+
+### Running tests
+
+```bash
+cd pipeline
+uv run -m pytest
+```
+
+This runs both unit and integration tests for the pipeline.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE)

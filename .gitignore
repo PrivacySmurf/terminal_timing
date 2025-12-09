@@ -11,3 +11,7 @@ Thumbs.db
 
 # AI debug files
 .ai/*
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
