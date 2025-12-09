@@ -159,6 +159,73 @@ The core data models describe how Timing Terminal represents price and phase sco
   - `lastUpdated` – ISO 8601 string for latest update time
   - `dataQuality` – enum: `complete`, `partial`, `stale`
 
+### Data Quality
+
+Data quality is a first-class architectural concern for the pipeline. It exposes
+whether `chart-data.json` was produced from complete, partial, or stale input
+series so that both the frontend and operational tooling can respond
+appropriately.
+
+#### Required Series
+
+For the MVP Bitcoin phase pipeline, the scoring engine expects at least:
+
+- **BTC price** – BTC/USD price time series.
+- **LTH SOPR-like series** – long-term-holder realization / profit-taking proxy.
+- **LTH MVRV-like series** – long-term-holder valuation / unrealized-profit proxy.
+
+Future stories may add more inputs, but these three are the baseline required for
+computing a meaningful phase score.
+
+#### DataQuality States
+
+The `dataQuality` field in `chart-data.json` is an enum with three values:
+
+- `complete` – All required series are present and **fresh** relative to the
+  configured freshness threshold.
+- `partial` – Some, but not all, required series are present or up-to-date in
+  the recent lookback window.
+- `stale` – Data is older than the freshness threshold or entirely missing for
+  the current window.
+
+#### Evaluation Rules (MVP)
+
+Implementation details can evolve, but the architectural contract for MVP is:
+
+1. Let `PhasePoint[]` represent the normalized internal time series used for
+   scoring.
+2. Compute `latest_ts` as the maximum `timestamp` over all available
+   `PhasePoint`s.
+3. Compare `latest_ts` to `now` using a configurable maximum age (e.g. 24 hours)
+   from configuration:
+   - If there are **no points**, or `now - latest_ts` exceeds the maximum age →
+     `dataQuality = "stale"`.
+4. If data is not stale but the number of available points is less than the
+   expected minimum for the lookback window (also configurable) →
+   `dataQuality = "partial"`.
+5. Otherwise → `dataQuality = "complete"`.
+
+These rules are enforced in the pipeline by a dedicated evaluation function
+(`evaluate_data_quality`) so that both unit and integration tests can exercise
+`complete` / `partial` / `stale` scenarios deterministically.
+
+#### UX and Monitoring Implications
+
+- **Frontend / Notion copy**:
+  - When `dataQuality = "complete"`, the chart is presented as fully
+    up-to-date.
+  - When `dataQuality = "partial"`, the chart remains visible but should be
+    accompanied by a banner or copy explaining that some inputs are degraded and
+    decisions should be made with extra caution.
+  - When `dataQuality = "stale"`, the chart should be visually de-emphasized
+    and clearly labeled as historical only; users should be discouraged from
+    making fresh timing decisions until data recovers.
+- **Monitoring**:
+  - Discord notifications (and later SMS/email during critical phase zones
+    `<20` or `>80`) should include the current `dataQuality` value so on-call
+    humans can see at a glance whether an automation failure is affecting
+decision quality.
+
 ### JSON Schema (chart-data.json)
 
 At the file level, the pipeline produces a JSON document with this structure:
