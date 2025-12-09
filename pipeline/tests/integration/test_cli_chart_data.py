@@ -147,3 +147,27 @@ def test_cli_computes_phase_scores_using_scoring_module(tmp_path, monkeypatch):
     score_values = [s["value"] for s in data["phaseScore"]]
     # With fixture prices [40000, 42000, 45000, 43000], scores should vary
     assert len(set(score_values)) > 1, "All scores are identical (scoring not working)"
+
+
+def test_cli_provider_mode_works_with_provider_and_lth(tmp_path, monkeypatch):
+    """CLI should work in provider mode using the market data provider.
+
+    This exercises the provider-backed PhasePoint construction and ensures
+    that chart-data.json is still generated with the expected schema.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("TT_PIPELINE_MODE", "provider")
+
+    cli.main()
+
+    out_path = tmp_path / "pipeline" / "out" / "chart-data.json"
+    assert out_path.exists(), "chart-data.json was not generated in provider mode"
+
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+
+    # Basic schema checks still hold
+    assert set(data.keys()) == {"btcPrice", "phaseScore", "lastUpdated", "dataQuality"}
+    assert isinstance(data["btcPrice"], list) and data["btcPrice"], "btcPrice should be non-empty list"
+    assert isinstance(data["phaseScore"], list) and data["phaseScore"], "phaseScore should be non-empty list"
+    assert len(data["btcPrice"]) == len(data["phaseScore"])

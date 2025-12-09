@@ -23,6 +23,10 @@ class ScoringConfig:
     # Scoring parameters (MVP: simplified momentum-based calculation)
     momentum_window: int = 30  # days for price momentum calculation
     momentum_weight: float = 1.0  # weight for momentum component
+
+    # Optional LTH influence (Story 1.4)
+    # 0.0 → no effect (pure price momentum), 1.0 → full LTH influence
+    lth_weight: float = 0.0
     
     # Price normalization bounds for MVP scoring
     max_price_change_pct: float = 100.0  # cap for normalizing price changes

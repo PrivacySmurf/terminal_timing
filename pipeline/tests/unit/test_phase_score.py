@@ -184,3 +184,54 @@ def test_short_history_uses_available_window(default_config):
     assert len(scores) == 10
     # All scores should be valid
     assert all(0.0 <= s <= 100.0 for s in scores)
+
+
+def test_lth_series_length_mismatch_raises(default_config):
+    """Providing LTH series with wrong length raises ValueError."""
+    points = [
+        make_phase_point("2025-01-01T00:00:00", 30000.0),
+        make_phase_point("2025-01-02T00:00:00", 31000.0),
+    ]
+    lth_series = [0.1]  # wrong length
+
+    with pytest.raises(ValueError, match="lth_series length"):
+        compute_phase_score(points, default_config, lth_series=lth_series)
+
+
+def test_lth_weight_zero_preserves_base_scores(default_config):
+    """Passing LTH series with zero weight must not change scores."""
+    points = [
+        make_phase_point(f"2025-01-{i:02d}T00:00:00", 30000.0 + (i * 200))
+        for i in range(1, 6)
+    ]
+    base_scores = compute_phase_score(points, default_config)
+
+    lth_series = [10.0, 20.0, 30.0, 40.0, 50.0]
+
+    # Explicitly set lth_weight to 0.0
+    cfg_zero_weight = ScoringConfig(lth_weight=0.0)
+    scores_with_lth = compute_phase_score(points, cfg_zero_weight, lth_series=lth_series)
+
+    assert scores_with_lth == base_scores
+
+
+def test_lth_positive_weight_influences_scores(default_config):
+    """Non-zero LTH weight should influence scores in a predictable direction."""
+    points = [
+        make_phase_point(f"2025-01-{i:02d}T00:00:00", 30000.0)
+        for i in range(1, 6)
+    ]
+    base_scores = compute_phase_score(points, default_config)
+
+    # Increasing LTH series should push scores upward when weighted in
+    lth_series = [10.0, 20.0, 30.0, 40.0, 50.0]
+    cfg_lth = ScoringConfig(lth_weight=0.5)
+
+    scores_with_lth = compute_phase_score(points, cfg_lth, lth_series=lth_series)
+
+    # Ensure scores have changed and the last score is higher than base
+    assert scores_with_lth != base_scores
+    assert scores_with_lth[-1] > base_scores[-1]
+
+    # Still bounded
+    assert all(0.0 <= s <= 100.0 for s in scores_with_lth)

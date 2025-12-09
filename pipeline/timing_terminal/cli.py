@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .models import ChartData, PhasePoint, TimeValue
 from .quality import DataQualityConfig, evaluate_data_quality
-from .config import get_scoring_config
+from .config import get_pipeline_mode, get_scoring_config, get_market_data_provider
 from .scoring.phase_score import compute_phase_score
 from .scoring.zones import enrich_phase_points_with_zones
 
@@ -37,6 +37,40 @@ def _load_fixture_points() -> list[PhasePoint]:
             )
         )
     return points
+
+
+def _load_points_from_provider() -> tuple[list[PhasePoint], list[float] | None]:
+    """Construct PhasePoints (and optional LTH series) from the provider.
+
+    The provider abstraction supplies BTC price and an optional LTH-like
+    metric. Both are already domain-level series (datetime + float).
+    """
+
+    provider = get_market_data_provider()
+    btc_series = provider.get_btc_price_series()
+    lth_points = provider.get_lth_metric_series()
+
+    points: list[PhasePoint] = []
+    for pt in btc_series:
+        points.append(
+            PhasePoint(
+                timestamp=pt.timestamp,
+                btc_price=pt.value,
+                phase_score=0.0,  # placeholder, will be filled by scoring
+                zone="neutral",  # placeholder, will be set by zone classifier
+            )
+        )
+
+    # For Story 1.4 MVP, assume provider returns aligned BTC and LTH series.
+    # If no LTH data is available, this can be an empty sequence.
+    if not lth_points:
+        lth_series: list[float] | None = None
+    else:
+        # Use the same order/length as btc_series; provider is responsible for
+        # alignment. If lengths diverge, compute_phase_score will raise.
+        lth_series = [pt.value for pt in lth_points]
+
+    return points, lth_series
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
     phase_series: list[TimeValue] = []
@@ -63,16 +97,24 @@ def _build_chart_data(points: list[PhasePoint]) -> ChartData:
 def main() -> None:
     """Entry point for `timing-terminal-pipeline` CLI.
 
-    For Story 1.1 this uses in-memory fixtures only.
-    Updated in Story 1.3 to compute phase scores using scoring module.
+    For Story 1.1 this used in-memory fixtures only.
+    Story 1.3 added the scoring module; Story 1.4 introduces an optional
+    provider-backed path for building PhasePoints.
     """
 
-    # Load fixture points with placeholder scores
-    points = _load_fixture_points()
+    mode = get_pipeline_mode()
+
+    if mode == "provider":
+        points, lth_series = _load_points_from_provider()
+    else:
+        # Default / fixture mode preserves existing behavior for tests and
+        # local runs that do not configure a provider.
+        points = _load_fixture_points()
+        lth_series = None
     
     # Compute phase scores using scoring module
     scoring_config = get_scoring_config()
-    phase_scores = compute_phase_score(points, scoring_config)
+    phase_scores = compute_phase_score(points, scoring_config, lth_series=lth_series)
     
     # Enrich points with computed scores and zones
     enriched_points = enrich_phase_points_with_zones(points, phase_scores, scoring_config)
