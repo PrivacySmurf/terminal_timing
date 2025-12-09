@@ -2,10 +2,10 @@
 schema: 1
 story: "1.1"
 story_title: "Story 1.1: Data Pipeline Bootstrap"
-gate: "CONCERNS"  # PASS|CONCERNS|FAIL|WAIVED
-status_reason: "All core pipeline behaviors are implemented and tested, but no partial/stale dataQuality path or test exists yet, so AC 4.3 is not fully satisfied."
+gate: "PASS"  # PASS|CONCERNS|FAIL|WAIVED
+status_reason: "All Story 1.1 acceptance criteria, including the non-complete dataQuality scenario and its integration test, are now satisfied."
 reviewer: "Quinn (Test Architect)"
-updated: "2025-12-09T05:53:16Z"
+updated: "2025-12-09T06:22:21Z"
 
 waiver: { active: false }
 
