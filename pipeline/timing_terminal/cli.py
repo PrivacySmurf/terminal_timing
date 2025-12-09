@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import ChartData, PhasePoint, TimeValue
-
-
-_EXPECTED_POINT_COUNT = 4
+from .quality import DataQualityConfig, evaluate_data_quality
 
 
 def _load_fixture_points() -> list[PhasePoint]:
@@ -34,23 +32,6 @@ def _load_fixture_points() -> list[PhasePoint]:
             zone = "neutral"
         points.append(PhasePoint(timestamp=ts, btc_price=price, phase_score=score, zone=zone))
     return points
-
-
-def _infer_data_quality(points: list[PhasePoint]) -> str:
-    """Infer a simple dataQuality flag from the available points.
-
-    - No points      → "stale" (nothing to emit)
-    - Some but < N   → "partial" (fixtures incomplete)
-    - N or more     → "complete"
-    """
-
-    if not points:
-        return "stale"
-    if len(points) < _EXPECTED_POINT_COUNT:
-        return "partial"
-    return "complete"
-
-
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
     phase_series: list[TimeValue] = []
@@ -60,7 +41,12 @@ def _build_chart_data(points: list[PhasePoint]) -> ChartData:
         phase_series.append(TimeValue(time=ts, value=p.phase_score))
 
     last_updated = datetime.now(timezone.utc)
-    data_quality: str = _infer_data_quality(points)
+
+    # Use the shared evaluation logic so dataQuality semantics are consistent
+    # with the architecture and unit tests.
+    dq_config = DataQualityConfig()
+    data_quality = evaluate_data_quality(points, now=last_updated, config=dq_config)
+
     return ChartData(
         btc_price=btc_price_series,
         phase_score=phase_series,

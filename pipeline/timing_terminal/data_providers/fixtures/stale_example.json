@@ -1,0 +1,4 @@
+{
+  "description": "Stale data example where the latest data point is older than the freshness threshold.",
+  "notes": "Intended to back scenarios where dataQuality should be 'stale'."
+}

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import timing_terminal.cli as cli
@@ -56,13 +56,14 @@ def test_cli_can_emit_partial_data_quality(tmp_path, monkeypatch):
     out_root = tmp_path / "pipeline" / "out"
 
     def _partial_points() -> list[PhasePoint]:
-        base_ts = 1_609_459_200  # 2021-01-01 UTC, arbitrary but stable
-        # Two points only → treated as partial
+        # Use recent timestamps so data is fresh enough to avoid "stale" and
+        # exercise the "partial" path based on insufficient point count.
+        now = datetime.now(timezone.utc)
         prices = [40000.0, 42000.0]
         scores = [10.0, 30.0]
         points: list[PhasePoint] = []
         for idx, (price, score) in enumerate(zip(prices, scores, strict=True)):
-            ts = datetime.fromtimestamp(base_ts + idx * 86_400, tz=timezone.utc)
+            ts = now - timedelta(hours=idx + 1)
             zone = "retention" if score <= 20 else "neutral"
             points.append(PhasePoint(timestamp=ts, btc_price=price, phase_score=score, zone=zone))
         return points
@@ -77,3 +78,33 @@ def test_cli_can_emit_partial_data_quality(tmp_path, monkeypatch):
 
     data = json.loads(out_path.read_text(encoding="utf-8"))
     assert data["dataQuality"] == "partial"
+
+
+def test_cli_can_emit_stale_data_quality(tmp_path, monkeypatch):
+    """CLI should be able to emit a stale dataQuality value.
+
+    We simulate stale data by returning points whose timestamps are well
+    outside the freshness window. This should drive `dataQuality` to "stale".
+    """
+
+    out_root = tmp_path / "pipeline" / "out"
+
+    def _stale_points() -> list[PhasePoint]:
+        # Far in the past relative to "now" inside the CLI
+        base_ts = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        points: list[PhasePoint] = []
+        for days in (10, 9, 8):
+            ts = base_ts - timedelta(days=days)
+            points.append(PhasePoint(timestamp=ts, btc_price=40000.0, phase_score=50.0, zone="neutral"))
+        return points
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(cli, "_load_fixture_points", _stale_points)
+
+    cli.main()
+
+    out_path = out_root / "chart-data.json"
+    assert out_path.exists(), "chart-data.json was not generated for stale scenario"
+
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert data["dataQuality"] == "stale"

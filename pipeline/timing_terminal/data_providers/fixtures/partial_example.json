@@ -1,0 +1,4 @@
+{
+  "description": "Partial data example where recent points are missing for at least one required series.",
+  "notes": "Intended to back scenarios where dataQuality should be 'partial'."
+}
