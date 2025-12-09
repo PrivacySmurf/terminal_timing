@@ -223,7 +223,7 @@ The Notion hub page containing the chart embed operates under **Notion's SEO rul
 - Free newsletter landing page may be indexed for discovery, but not premium hub
 
 **Discovery Model:**
-- Users find public_plots via **newsletter**, not search engines
+- Users find timing_terminal via **newsletter**, not search engines
 - Chart access is **gated content** delivered after payment
 - SEO irrelevant for MVP - growth via newsletter audience, not organic search
 

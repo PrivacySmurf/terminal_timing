@@ -2,7 +2,7 @@
 
 ### User Success
 
-User success for public_plots is measured through observable behavioral patterns that indicate confidence-building and systematic decision-making rather than direct portfolio performance (which we cannot measure).
+User success for timing_terminal is measured through observable behavioral patterns that indicate confidence-building and systematic decision-making rather than direct portfolio performance (which we cannot measure).
 
 **Marcus Segment (Experienced Investors) - Confidence Through Validation:**
 

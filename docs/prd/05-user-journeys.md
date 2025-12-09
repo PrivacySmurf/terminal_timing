@@ -51,7 +51,7 @@ Eventually she graduates to the **Advanced** view, same as Marcus, and makes her
 David, a 42-year-old financial analyst, already pays for Glassnode and reads many newsletters. He is intellectually convinced by the Phase Score methodology but is unsure whether this product is redundant with his existing tools.
 
 He needs:
-- Clear competitive positioning: "Glassnode/CryptoQuant show WHAT; public_plots shows WHEN"
+- Clear competitive positioning: "Glassnode/CryptoQuant show WHAT; timing_terminal shows WHEN"
 - A succinct explanation of how this complements, not replaces, his existing stack
 - Easy re-access: bookmarkable link and simple URL structure
 

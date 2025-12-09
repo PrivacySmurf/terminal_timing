@@ -4,7 +4,7 @@
 
 ### Product Vision
 
-Public Plots is a premium interactive data visualization hub that transforms proprietary Bitcoin market analysis into explorable, actionable insights for crypto investors seeking systematic timing decisions. The product addresses a fundamental limitation in how crypto analysts share insights: static images in newsletters and Discord channels prevent readers from independently validating timing signals, exploring historical patterns, or building conviction through data interaction.
+Timing Terminal is a premium interactive data visualization hub that transforms proprietary Bitcoin market analysis into explorable, actionable insights for crypto investors seeking systematic timing decisions. The product addresses a fundamental limitation in how crypto analysts share insights: static images in newsletters and Discord channels prevent readers from independently validating timing signals, exploring historical patterns, or building conviction through data interaction.
 
 The full platform vision (Phase 2+) expands to a multi-chart hub supporting diverse proprietary analyses with reusable architecture, saved view functionality, advanced member tiers, and potential expansion into institutional API access or education offerings based on validated retail demand.
 
@@ -93,7 +93,7 @@ MVP leverages existing infrastructure for regulatory-heavy functions:
 
 ### User Success
 
-User success for public_plots is measured through observable behavioral patterns that indicate confidence-building and systematic decision-making rather than direct portfolio performance (which we cannot measure).
+User success for timing_terminal is measured through observable behavioral patterns that indicate confidence-building and systematic decision-making rather than direct portfolio performance (which we cannot measure).
 
 **Marcus Segment (Experienced Investors) - Confidence Through Validation:**
 
@@ -660,8 +660,8 @@ Three months later, BTC tops at Phase Score 86, and David rides it back down 30%
 - Bookmark-friendly persistent link with clear URL structure (easy to find again)
 - Email reminder campaigns: "Phase Score entering decision zone (78+) - check your hub" with direct link
 - **Phase 2 conversion optimization** (deferred from MVP):
-  - Social proof testimonials: "I have Glassnode AND public_plots - here's why"
-  - Use case examples: "Glassnode for research, public_plots for execution timing"
+  - Social proof testimonials: "I have Glassnode AND timing_terminal - here's why"
+  - Use case examples: "Glassnode for research, timing_terminal for execution timing"
   - Cart abandonment recovery: Email sequence for users who explore but don't subscribe
   - Objection handling: "Why both subscriptions?" FAQ section
 - Conversion friction analytics: Track % newsletter subscribers who click through but don't convert (informs Phase 2 optimization)
@@ -774,7 +774,7 @@ This shows: You listened. You're data-driven (request count matters). You're tra
 
 ### Journey Requirements Summary
 
-The four user journeys reveal distinct capability areas required for public_plots to deliver value across all user types:
+The four user journeys reveal distinct capability areas required for timing_terminal to deliver value across all user types:
 
 **Core Interactive Experience (Marcus & Sarah):**
 - Daily-automated Python data pipeline with proprietary phase score calculations
@@ -857,8 +857,8 @@ The four user journeys reveal distinct capability areas required for public_plot
 **Conversion Optimization (David's journey - MVP + Phase 2):**
 - **MVP (minimal addressing)**: Positioning statement above chart, competitive context section
 - **Phase 2 deferred features**:
-  - Social proof: Testimonials from users who have both Glassnode AND public_plots
-  - Use case examples: "Glassnode for research, public_plots for execution timing"
+  - Social proof: Testimonials from users who have both Glassnode AND timing_terminal
+  - Use case examples: "Glassnode for research, timing_terminal for execution timing"
   - Email reminder campaigns with direct chart links during phase transitions (78+ = decision zone)
   - Conversion friction analytics: % newsletter subscribers who explore but don't convert
   - Cart abandonment recovery: Email sequence for users who interact but don't subscribe
@@ -886,7 +886,7 @@ Public_plots delivers a novel trust architecture that combines four interdepende
 
 **The Innovation System:**
 
-Unlike competitors who provide either raw data access (Glassnode's 800+ metrics) or analyst curation alone (Ben Cowen's video analysis), public_plots delivers all four layers working together:
+Unlike competitors who provide either raw data access (Glassnode's 800+ metrics) or analyst curation alone (Ben Cowen's video analysis), timing_terminal delivers all four layers working together:
 
 1. **Proprietary Signal Foundation:** Custom Phase Score (0-100) combining LTH SOPR smoothing and LTH MVRV transformations - calculation methodology unavailable on any other platform
 2. **Proven Track Record Layer:** Historical validation calling 2021 top within 2 weeks (Phase Score 85) and 2022 bottom (Phase Score 12)
@@ -917,7 +917,7 @@ Unlike competitors who provide either raw data access (Glassnode's 800+ metrics)
 
 **Competitive Positioning Matrix:**
 
-| Platform | Model | Strength | Gap public_plots Fills |
+| Platform | Model | Strength | Gap timing_terminal Fills |
 |----------|-------|----------|------------------------|
 | **Glassnode** ($30-800/mo) | Comprehensive metrics | 800+ on-chain indicators, enterprise infrastructure | No proprietary timing signals, overwhelming metric count, no clear "when to act" guidance |
 | **CryptoQuant** ($49-799/mo) | Professional analytics | Exchange flow data, institutional tools | Broad data without interpretation, missing actionable timing framework |
@@ -972,7 +972,7 @@ Each innovation layer maps to measurable user behaviors:
 **Business Validation:**
 
 **Success Indicators:**
-- Members maintain public_plots subscriptions while reducing/canceling Glassnode (curated beats comprehensive)
+- Members maintain timing_terminal subscriptions while reducing/canceling Glassnode (curated beats comprehensive)
 - Testimonials mentioning "clarity," "confidence," "systematic decisions" vs "comprehensive" or "more data"
 - Strategic usage patterns: Hub checks correlating with phase transitions (78+ decision zones) not random anxiety checks
 
@@ -1016,7 +1016,7 @@ Each innovation layer maps to measurable user behaviors:
   - Circuit breaker: 0 of 3 criteria met = innovation not validated, pivot required
 
 **Success Validation Example:**
-Marcus cancels Glassnode ($39/mo), keeps public_plots ($20/mo), tells friends: "I only need these 3-5 signals, not 800 metrics I never check. The track record speaks for itself, and I can verify everything myself."
+Marcus cancels Glassnode ($39/mo), keeps timing_terminal ($20/mo), tells friends: "I only need these 3-5 signals, not 800 metrics I never check. The track record speaks for itself, and I can verify everything myself."
 
 **Pivot Validation Example:**
 Month 3 shows 32 chart requests spanning 20+ diverse topics, members asking "when will you add more comprehensive coverage?" → Curation hypothesis failing, users want breadth despite stated preferences → Evaluate comprehensive expansion or repositioning.
@@ -1248,7 +1248,7 @@ The Notion hub page containing the chart embed operates under **Notion's SEO rul
 - Free newsletter landing page may be indexed for discovery, but not premium hub
 
 **Discovery Model:**
-- Users find public_plots via **newsletter**, not search engines
+- Users find timing_terminal via **newsletter**, not search engines
 - Chart access is **gated content** delivered after payment
 - SEO irrelevant for MVP - growth via newsletter audience, not organic search
 

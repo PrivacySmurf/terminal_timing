@@ -6,7 +6,7 @@ Public_plots delivers a novel trust architecture that combines four interdepende
 
 **The Innovation System:**
 
-Unlike competitors who provide either raw data access (Glassnode's 800+ metrics) or analyst curation alone (Ben Cowen's video analysis), public_plots delivers all four layers working together:
+Unlike competitors who provide either raw data access (Glassnode's 800+ metrics) or analyst curation alone (Ben Cowen's video analysis), timing_terminal delivers all four layers working together:
 
 1. **Proprietary Signal Foundation:** Custom Phase Score (0-100) combining LTH SOPR smoothing and LTH MVRV transformations - calculation methodology unavailable on any other platform
 2. **Proven Track Record Layer:** Historical validation calling 2021 top within 2 weeks (Phase Score 85) and 2022 bottom (Phase Score 12)
@@ -37,7 +37,7 @@ Unlike competitors who provide either raw data access (Glassnode's 800+ metrics)
 
 **Competitive Positioning Matrix:**
 
-| Platform | Model | Strength | Gap public_plots Fills |
+| Platform | Model | Strength | Gap timing_terminal Fills |
 |----------|-------|----------|------------------------|
 | **Glassnode** ($30-800/mo) | Comprehensive metrics | 800+ on-chain indicators, enterprise infrastructure | No proprietary timing signals, overwhelming metric count, no clear "when to act" guidance |
 | **CryptoQuant** ($49-799/mo) | Professional analytics | Exchange flow data, institutional tools | Broad data without interpretation, missing actionable timing framework |
@@ -92,7 +92,7 @@ Each innovation layer maps to measurable user behaviors:
 **Business Validation:**
 
 **Success Indicators:**
-- Members maintain public_plots subscriptions while reducing/canceling Glassnode (curated beats comprehensive)
+- Members maintain timing_terminal subscriptions while reducing/canceling Glassnode (curated beats comprehensive)
 - Testimonials mentioning "clarity," "confidence," "systematic decisions" vs "comprehensive" or "more data"
 - Strategic usage patterns: Hub checks correlating with phase transitions (78+ decision zones) not random anxiety checks
 
@@ -136,7 +136,7 @@ Each innovation layer maps to measurable user behaviors:
   - Circuit breaker: 0 of 3 criteria met = innovation not validated, pivot required
 
 **Success Validation Example:**
-Marcus cancels Glassnode ($39/mo), keeps public_plots ($20/mo), tells friends: "I only need these 3-5 signals, not 800 metrics I never check. The track record speaks for itself, and I can verify everything myself."
+Marcus cancels Glassnode ($39/mo), keeps timing_terminal ($20/mo), tells friends: "I only need these 3-5 signals, not 800 metrics I never check. The track record speaks for itself, and I can verify everything myself."
 
 **Pivot Validation Example:**
 Month 3 shows 32 chart requests spanning 20+ diverse topics, members asking "when will you add more comprehensive coverage?" → Curation hypothesis failing, users want breadth despite stated preferences → Evaluate comprehensive expansion or repositioning.

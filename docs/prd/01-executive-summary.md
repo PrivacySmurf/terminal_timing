@@ -2,7 +2,7 @@
 
 ### Product Vision
 
-Public Plots is a premium interactive data visualization hub that transforms proprietary Bitcoin market analysis into explorable, actionable insights for crypto investors seeking systematic timing decisions. The product addresses a fundamental limitation in how crypto analysts share insights: static images in newsletters and Discord channels prevent readers from independently validating timing signals, exploring historical patterns, or building conviction through data interaction.
+Timing Terminal is a premium interactive data visualization hub that transforms proprietary Bitcoin market analysis into explorable, actionable insights for crypto investors seeking systematic timing decisions. The product addresses a fundamental limitation in how crypto analysts share insights: static images in newsletters and Discord channels prevent readers from independently validating timing signals, exploring historical patterns, or building conviction through data interaction.
 
 The full platform vision (Phase 2+) expands to a multi-chart hub supporting diverse proprietary analyses with reusable architecture, saved view functionality, advanced member tiers, and potential expansion into institutional API access or education offerings based on validated retail demand.
 

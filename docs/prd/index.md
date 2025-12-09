@@ -1,4 +1,4 @@
-# Product Requirements Document – Public Plots
+# Product Requirements Document – Timing Terminal
 
 ## Table of Contents
 
