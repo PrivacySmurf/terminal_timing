@@ -100,12 +100,25 @@ This will:
 
 ### Running tests
 
+You can run the full test suite from the **repo root** using the helper script:
+
+```bash
+./run-tests
+```
+
+This will:
+- `cd` into `pipeline/`
+- Expose the `timing_terminal` package on `PYTHONPATH`
+- Run `uv run pytest` with the project’s `pyproject.toml` config
+
+You can still run tests directly inside `pipeline/` if you prefer:
+
 ```bash
 cd pipeline
 uv run -m pytest
 ```
 
-This runs both unit and integration tests for the pipeline.
+Both approaches run the same unit and integration tests for the pipeline.
 
 ## License
 

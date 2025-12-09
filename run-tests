@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Wrapper to run tests in the pipeline project so `timing_terminal` is importable.
+cd "$(dirname "$0")/pipeline"
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
+uv run pytest "$@"
