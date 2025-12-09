@@ -6,12 +6,16 @@ from pathlib import Path
 
 from .models import ChartData, PhasePoint, TimeValue
 from .quality import DataQualityConfig, evaluate_data_quality
+from .config import get_scoring_config
+from .scoring.phase_score import compute_phase_score
+from .scoring.zones import enrich_phase_points_with_zones
 
 
 def _load_fixture_points() -> list[PhasePoint]:
     """Return a tiny, deterministic set of PhasePoints from in-memory fixtures.
 
     This keeps Story 1.1 self-contained without real external providers.
+    Now updated in Story 1.3 to use scoring module to compute phase_score and zone.
 
     Tests can monkeypatch this function to simulate missing or stale fixture data
     in order to drive `dataQuality` away from "complete".
@@ -19,18 +23,19 @@ def _load_fixture_points() -> list[PhasePoint]:
 
     base_ts = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     prices = [40000.0, 42000.0, 45000.0, 43000.0]
-    raw_scores = [10.0, 30.0, 70.0, 85.0]
 
+    # Create initial points with placeholder scores/zones
     points: list[PhasePoint] = []
-    for idx, (price, score) in enumerate(zip(prices, raw_scores, strict=True)):
+    for idx, price in enumerate(prices):
         ts = datetime.fromtimestamp(base_ts + idx * 86_400, tz=timezone.utc)
-        if score <= 20:
-            zone: str = "retention"
-        elif score >= 80:
-            zone = "distribution"
-        else:
-            zone = "neutral"
-        points.append(PhasePoint(timestamp=ts, btc_price=price, phase_score=score, zone=zone))
+        points.append(
+            PhasePoint(
+                timestamp=ts,
+                btc_price=price,
+                phase_score=0.0,  # placeholder
+                zone="neutral",  # placeholder
+            )
+        )
     return points
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
@@ -59,10 +64,21 @@ def main() -> None:
     """Entry point for `timing-terminal-pipeline` CLI.
 
     For Story 1.1 this uses in-memory fixtures only.
+    Updated in Story 1.3 to compute phase scores using scoring module.
     """
 
+    # Load fixture points with placeholder scores
     points = _load_fixture_points()
-    chart_data = _build_chart_data(points)
+    
+    # Compute phase scores using scoring module
+    scoring_config = get_scoring_config()
+    phase_scores = compute_phase_score(points, scoring_config)
+    
+    # Enrich points with computed scores and zones
+    enriched_points = enrich_phase_points_with_zones(points, phase_scores, scoring_config)
+    
+    # Build chart data from enriched points
+    chart_data = _build_chart_data(enriched_points)
 
     out_dir = Path("pipeline/out")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -71,7 +87,10 @@ def main() -> None:
     payload = chart_data.to_json_dict()
     out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
+    # Enhanced output showing phase scores and zones
     print(
         f"Generated {len(chart_data.btc_price)} points to {out_path} "
         f"(dataQuality={chart_data.data_quality}, lastUpdated={payload['lastUpdated']})"
     )
+    print(f"Sample phase scores: {phase_scores}")
+    print(f"Sample zones: {[p.zone for p in enriched_points]}")

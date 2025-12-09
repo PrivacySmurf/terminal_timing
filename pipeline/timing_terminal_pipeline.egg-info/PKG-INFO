@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: timing-terminal-pipeline
+Version: 0.1.0
+Summary: Timing Terminal daily batch pipeline for Bitcoin phase scoring
+Requires-Python: >=3.11
+Requires-Dist: pandas>=2.2.0
+Requires-Dist: numpy>=1.26.0
+Requires-Dist: httpx>=0.27.0
+Requires-Dist: PyYAML>=6.0.0
+Requires-Dist: pytest>=8.0.0

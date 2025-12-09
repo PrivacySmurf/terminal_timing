@@ -3,7 +3,6 @@ name = "timing-terminal-pipeline"
 version = "0.1.0"
 requires-python = ">=3.11"
 description = "Timing Terminal daily batch pipeline for Bitcoin phase scoring"
-readme = "../README.md"
 
 # Core runtime dependencies
 dependencies = [

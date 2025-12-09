@@ -108,3 +108,42 @@ def test_cli_can_emit_stale_data_quality(tmp_path, monkeypatch):
 
     data = json.loads(out_path.read_text(encoding="utf-8"))
     assert data["dataQuality"] == "stale"
+
+
+def test_cli_computes_phase_scores_using_scoring_module(tmp_path, monkeypatch):
+    """CLI should compute phase scores using the scoring module (Story 1.3).
+    
+    Verify that:
+    - phaseScore array is populated with computed values (not hardcoded)
+    - Time alignment between btcPrice and phaseScore is maintained
+    - Scores are in valid range [0.0, 100.0]
+    """
+    out_root = tmp_path / "pipeline" / "out"
+    
+    monkeypatch.chdir(tmp_path)
+    
+    cli.main()
+    
+    out_path = out_root / "chart-data.json"
+    assert out_path.exists(), "chart-data.json was not generated"
+    
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    
+    # Verify phaseScore array exists and is non-empty
+    assert "phaseScore" in data
+    assert len(data["phaseScore"]) > 0
+    
+    # Verify time alignment with btcPrice
+    assert len(data["btcPrice"]) == len(data["phaseScore"])
+    for btc_entry, score_entry in zip(data["btcPrice"], data["phaseScore"], strict=True):
+        assert btc_entry["time"] == score_entry["time"], "Time alignment broken"
+    
+    # Verify all scores are valid (0-100 range)
+    for score_entry in data["phaseScore"]:
+        score_value = score_entry["value"]
+        assert 0.0 <= score_value <= 100.0, f"Score {score_value} out of bounds"
+    
+    # Verify scores are not all the same (should have variation based on price movement)
+    score_values = [s["value"] for s in data["phaseScore"]]
+    # With fixture prices [40000, 42000, 45000, 43000], scores should vary
+    assert len(set(score_values)) > 1, "All scores are identical (scoring not working)"
