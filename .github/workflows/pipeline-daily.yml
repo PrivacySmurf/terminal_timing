@@ -1,0 +1,70 @@
+name: Pipeline Daily
+
+on:
+  schedule:
+    # Daily at 06:00 UTC – adjust as needed
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  test-and-run-pipeline:
+    runs-on: ubuntu-latest
+
+    env:
+      # Default to fixture mode; can be overridden via a GitHub Actions variable
+      # Set repository/organization variable `TT_PIPELINE_MODE=provider` to
+      # exercise the provider-backed path (currently still using the in-memory
+      # provider abstraction).
+      TT_PIPELINE_MODE: ${{ vars.TT_PIPELINE_MODE || 'fixture' }}
+
+      # Provider-specific API keys / URLs will be introduced when a real HTTP
+      # provider is added; no external credentials are required for the current
+      # in-memory provider.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run pipeline tests (unit + integration)
+        run: |
+          chmod +x ./run-tests
+          ./run-tests
+
+      - name: Run pipeline CLI (fixture mode by default)
+        working-directory: ./pipeline
+        env:
+          TT_PIPELINE_MODE: ${{ env.TT_PIPELINE_MODE }}
+        run: |
+          uv run timing-terminal-pipeline
+
+      - name: Show pipeline summary
+        if: always()
+        run: |
+          if [ -f pipeline/out/chart-data.json ]; then
+            echo "chart-data.json exists at pipeline/out/chart-data.json"
+            echo "Summary (first 40 lines):"
+            head -n 40 pipeline/out/chart-data.json || true
+          else
+            echo "chart-data.json was not generated" >&2
+            exit 1
+          fi
+
+      - name: Notify Discord (optional)
+        if: always() && env.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || '' }}
+        run: |
+          STATUS="${{ job.status }}"
+          MESSAGE="Timing Terminal pipeline run: ${STATUS} (dataQuality not parsed here; see logs/chart-data.json)"
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"content\": \"${MESSAGE}\"}" "${DISCORD_WEBHOOK_URL}" || echo "Discord notify failed (non-blocking)"

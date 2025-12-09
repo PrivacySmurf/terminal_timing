@@ -120,6 +120,22 @@ uv run -m pytest
 
 Both approaches run the same unit and integration tests for the pipeline.
 
+## Pipeline Daily GitHub Actions Workflow
+
+A GitHub Actions workflow runs the Bitcoin phase-scoring pipeline on a schedule.
+
+- **Workflow file:** `.github/workflows/pipeline-daily.yml`
+- **Schedule:** daily at `06:00` UTC (and manually via **Run workflow** in GitHub)
+- **What it does:**
+  - Checks out the repo and sets up Python 3.11.
+  - Installs dependencies using `uv`.
+  - Runs the full pipeline test suite via `./run-tests`.
+  - Runs the `timing-terminal-pipeline` CLI (fixture mode by default).
+  - Fails the job if `pipeline/out/chart-data.json` is not generated.
+
+To adjust the schedule or enable provider mode, edit the workflow file and
+configure the appropriate environment variables and GitHub Secrets.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE)
