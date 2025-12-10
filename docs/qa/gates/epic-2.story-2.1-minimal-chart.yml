@@ -1,0 +1,22 @@
+story: "2.1"
+epic: "2"
+slug: "minimal-tradingview-chart-page"
+name: "Minimal TradingView Chart Page"
+status: "PASS"
+reviewed_by: "Quinn (QA)"
+summary: |
+  Story 2.1 implements a static TradingView Lightweight Charts page that loads
+  chart-data.json and renders BTC price and phase score with basic
+  interactions and Notion-friendly layout. Behavior matches acceptance
+  criteria and architecture; Dev and prior QA validation confirm the
+  implementation.
+risks:
+  - id: notion-embed-layout
+    level: low
+    description: >-
+      Horizontal scroll and iframe sizing behavior in real Notion embeds has
+      only been approximated; final visual behavior should be verified when
+      wiring up Notion integration in later stories.
+    mitigation: >-
+      Validate chart layout inside a real Notion embed during Story 2.3 and
+      adjust CSS/container sizing if needed.
