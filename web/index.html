@@ -33,7 +33,7 @@
         font-size: 0.9rem;
         color: #9ca3af;
       }
-      .chart-wrapper {
+.chart-wrapper {
         position: relative;
         width: 100%;
         /* 16:9 aspect ratio suitable for Notion iframe */
@@ -48,6 +48,41 @@
         left: 0;
         right: 0;
         bottom: 0;
+      }
+      #chart:focus-visible {
+        outline: 2px solid #38bdf8;
+        outline-offset: 2px;
+      }
+.chart-legend {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        background: rgba(15, 23, 42, 0.85);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 0.75rem;
+        color: #e5e7eb;
+        pointer-events: none;
+        z-index: 20;
+      }
+      .chart-legend__item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .chart-legend__swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 9999px;
+      }
+      .chart-legend__swatch--price {
+        background: #38bdf8;
+      }
+      .chart-legend__swatch--phase {
+        background: #f97316;
       }
       .status {
         margin-top: 8px;
@@ -66,7 +101,21 @@
       <h1>Bitcoin Price &amp; Phase Score</h1>
       <p class="subtitle">Interactive chart driven by <code>chart-data.json</code>.</p>
       <div class="chart-wrapper">
-        <div id="chart"></div>
+        <div
+          id="chart"
+          tabindex="0"
+          aria-label="Bitcoin price and phase score chart. Use pointing device to zoom and inspect values."
+        ></div>
+        <div class="chart-legend" aria-hidden="true">
+          <span class="chart-legend__item">
+            <span class="chart-legend__swatch chart-legend__swatch--price"></span>
+            <span>BTC price</span>
+          </span>
+          <span class="chart-legend__item">
+            <span class="chart-legend__swatch chart-legend__swatch--phase"></span>
+            <span>Phase score</span>
+          </span>
+        </div>
       </div>
       <div id="status" class="status">Loading chart data…</div>
     </div>
