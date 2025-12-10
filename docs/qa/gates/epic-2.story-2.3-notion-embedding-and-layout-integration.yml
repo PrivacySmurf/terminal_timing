@@ -1,0 +1,18 @@
+story: "Story 2.3 – Notion Embedding & Layout Integration"
+epic: "Epic 2 – Frontend Chart Delivery"
+id: "epic-2.story-2.3-notion-embedding-and-layout-integration"
+date: "2025-12-10"
+status: "PASS"
+owner: "QA (Quinn)"
+notes:
+  - "Netlify-hosted chart is embedded in the designated Notion page via embed block."
+  - "Chart is visible above the fold on a typical desktop viewport with deliberate layout."
+  - "Zoom/pan/tooltips work inside the Notion embed; no awkward horizontal scrollbars at common widths."
+  - "Copy near the chart explains the metric, how to explore it, and includes a minimal disclaimer."
+  - "Embedding process documented in docs/notion-embedding-guide.md with guidance for future updates."
+risks:
+  - "Notion mobile experience may be constrained; currently accepted as an MVP limitation."
+  - "Behavior depends on Netlify availability; no additional redundancy at this layer."
+recommendations:
+  - "Capture a short Loom or screenshot walkthrough in Notion for non-technical stakeholders (optional)."
+  - "Revisit mobile UX in a later story if Notion usage on phones becomes primary."
