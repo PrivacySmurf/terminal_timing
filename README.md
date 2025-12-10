@@ -136,6 +136,52 @@ A GitHub Actions workflow runs the Bitcoin phase-scoring pipeline on a schedule.
 To adjust the schedule or enable provider mode, edit the workflow file and
 configure the appropriate environment variables and GitHub Secrets.
 
+## Frontend Chart Page (Story 2.1)
+
+A minimal frontend chart page lives under `web/`.
+
+- **Entry HTML:** `web/index.html`
+- **Script:** `web/main.js`
+- **Data source:** expects a `chart-data.json` file in the same directory, with
+  the schema produced by the pipeline:
+  - `btcPrice[]` and `phaseScore[]` arrays of `{ time, value }` (Unix seconds, UTC).
+
+To run locally:
+
+1. Generate `chart-data.json`:
+   ```bash
+   ./run-tests  # or run the pipeline CLI to produce pipeline/out/chart-data.json
+   cp pipeline/out/chart-data.json web/
+   ```
+2. Serve the `web/` directory with a simple static server from the repo root:
+   ```bash
+   cd web
+   python -m http.server 8000
+   # then open http://localhost:8000 in your browser
+   ```
+
+The page will render BTC price and phase score using TradingView Lightweight
+Charts, with zoom/pan and hover tooltips.
+
+## Netlify Deployment (Story 2.2)
+
+For deployment, a minimal Netlify configuration is provided:
+
+- **Config file:** `netlify.toml`
+- **Publish directory:** `web/`
+- **Build command:** none required for MVP (static HTML + JS + `chart-data.json`).
+
+To deploy:
+
+1. Create a new site in Netlify from this repository.
+2. In the Netlify UI, ensure the publish directory is set to `web/`.
+3. Make sure `web/chart-data.json` exists and is committed when you trigger a deploy.
+4. After deploy, visit the Netlify URL and verify that the chart loads and behaves
+   the same as it does locally.
+
+A later story can automate the refresh of `chart-data.json` via CI; for now,
+updating the data file and re-deploying Netlify is a manual step.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE)

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Timing Terminal – Bitcoin Phase Chart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background-color: #060b10;
+        color: #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .page {
+        width: 100%;
+        max-width: 1200px;
+        padding: 16px;
+        box-sizing: border-box;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0 0 8px;
+      }
+      p.subtitle {
+        margin: 0 0 16px;
+        font-size: 0.9rem;
+        color: #9ca3af;
+      }
+      .chart-wrapper {
+        position: relative;
+        width: 100%;
+        /* 16:9 aspect ratio suitable for Notion iframe */
+        padding-bottom: 56.25%;
+        background-color: #020617;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      #chart {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      .status {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: #9ca3af;
+      }
+      .status.error {
+        color: #fecaca;
+      }
+    </style>
+    <!-- TradingView Lightweight Charts via CDN -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Bitcoin Price &amp; Phase Score</h1>
+      <p class="subtitle">Interactive chart driven by <code>chart-data.json</code>.</p>
+      <div class="chart-wrapper">
+        <div id="chart"></div>
+      </div>
+      <div id="status" class="status">Loading chart data…</div>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>
