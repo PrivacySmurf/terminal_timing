@@ -19,6 +19,7 @@ export default async (request, context) => {
   const allowedHosts = [
     'notion.so',
     'www.notion.so',
+    'notion.site',
   ];
 
   if (!referer) {
