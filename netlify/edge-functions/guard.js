@@ -40,7 +40,7 @@ export default async (request, context) => {
 
   // 2) Static token check
   const token = url.searchParams.get('token');
-  const expectedToken = process.env.PUBLIC_EMBED_TOKEN;
+  const expectedToken = Deno.env.get('PUBLIC_EMBED_TOKEN');
 
   if (!expectedToken) {
     // Misconfiguration: fail closed rather than open
