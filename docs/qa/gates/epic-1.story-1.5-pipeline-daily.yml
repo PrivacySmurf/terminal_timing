@@ -1,0 +1,20 @@
+story: "1.5"
+epic: "1"
+slug: "production-scheduling-and-github-actions-job"
+name: "Production Scheduling & GitHub Actions Job"
+status: "PASS"
+reviewed_by: "Quinn (QA)"
+summary: |
+  Story 1.5 implements a daily GitHub Actions workflow that runs tests, executes
+  the phase-scoring pipeline via the CLI, and validates chart-data.json, with
+  optional Discord notifications. Implementation matches story ACs and
+  architecture, tests are green, and risk is acceptable for current provider mode.
+risks:
+  - id: provider-future-http
+    level: medium
+    description: >-
+      When a real HTTP provider is introduced, additional secrets, retry logic,
+      and tests will be required to maintain reliability and determinism.
+    mitigation: >-
+      Capture a follow-up story for provider integration with explicit test and
+      secrets handling requirements.
