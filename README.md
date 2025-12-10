@@ -182,6 +182,32 @@ To deploy:
 A later story can automate the refresh of `chart-data.json` via CI; for now,
 updating the data file and re-deploying Netlify is a manual step.
 
+## Notion Integration Scripts
+
+For the Notion "⚡ Timing Terminal 2 (Source)" database, there is a helper
+script to ensure each chart row has a matching Embed block on its page.
+
+- **Example env:** `.env.example` (copy to `.env` and fill in values)
+  - `NOTION_API_KEY` – Notion integration secret
+  - `TT2_DATABASE_ID` – database ID of ⚡ Timing Terminal 2 (Source)
+- **Script:** `scripts/notion_sync_chart_embeds.py`
+
+Usage:
+
+```bash
+cd timing_terminal_test
+python scripts/notion_sync_chart_embeds.py
+```
+
+This will:
+
+- Query the Timing Terminal 2 source database
+- For each row with a `Chart URL` value, append a real Notion Embed block for
+  that URL to the row's page
+
+Run this after adding/updating rows in the Timing Terminal 2 source database
+so the individual chart pages stay in sync.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE)
