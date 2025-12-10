@@ -1,0 +1,21 @@
+story: "2.2"
+epic: "2"
+slug: "netlify-build-and-static-asset-wiring"
+name: "Netlify Build & Static Asset Wiring"
+status: "PASS"
+reviewed_by: "Quinn (QA)"
+summary: |
+  Story 2.2 wires the existing static chart page into Netlify by publishing the
+  web/ directory as a static site. Behavior matches the story: the deployed URL
+  serves the chart built in Story 2.1, loads chart-data.json from the expected
+  path, and relies on manual data refresh for MVP as documented.
+risks:
+  - id: manual-chart-data-refresh
+    level: medium
+    description: >-
+      Keeping chart-data.json in sync with the pipeline is currently a manual
+      git+deploy step. There is a risk of stale data if deploys are not
+      triggered regularly.
+    mitigation: >-
+      Add a future story to hook successful pipeline CI runs to a Netlify
+      deploy, automating chart-data.json refresh.
