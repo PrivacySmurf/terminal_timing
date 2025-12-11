@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "timing-terminal-pipeline"
 version = "0.1.0"
@@ -15,4 +19,7 @@ dependencies = [
 
 [project.scripts]
 "timing-terminal-pipeline" = "timing_terminal.cli:main"
+
+[tool.setuptools]
+packages = ["pipeline", "timing_terminal"]
 

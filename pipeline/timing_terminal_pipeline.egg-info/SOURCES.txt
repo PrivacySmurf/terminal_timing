@@ -2,6 +2,7 @@ pyproject.toml
 timing_terminal/__init__.py
 timing_terminal/cli.py
 timing_terminal/config.py
+timing_terminal/history.py
 timing_terminal/models.py
 timing_terminal/quality.py
 timing_terminal/scoring/__init__.py

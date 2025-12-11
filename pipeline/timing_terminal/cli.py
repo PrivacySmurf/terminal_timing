@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pandas as pd
 
 from .models import ChartData, PhasePoint, TimeValue
 from .quality import DataQualityConfig, evaluate_data_quality
 from .config import get_pipeline_mode, get_scoring_config, get_market_data_provider
+from .history import update_lsd_history
+from .scoring.lsd import compute_lsd
 from .scoring.phase_score import compute_phase_score
 from .scoring.zones import enrich_phase_points_with_zones
+from .providers.chartinspect import ChartInspectMarketDataProvider
 
 
 def _load_fixture_points() -> list[PhasePoint]:
@@ -39,7 +45,7 @@ def _load_fixture_points() -> list[PhasePoint]:
     return points
 
 
-def _load_points_from_provider() -> tuple[list[PhasePoint], list[float] | None]:
+def _load_points_from_provider() -> tuple[list[PhasePoint], list[float] | None, object]:
     """Construct PhasePoints (and optional LTH series) from the provider.
 
     The provider abstraction supplies BTC price and an optional LTH-like
@@ -70,7 +76,7 @@ def _load_points_from_provider() -> tuple[list[PhasePoint], list[float] | None]:
         # alignment. If lengths diverge, compute_phase_score will raise.
         lth_series = [pt.value for pt in lth_points]
 
-    return points, lth_series
+    return points, lth_series, provider
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
     lsd_series: list[TimeValue] = []
@@ -80,7 +86,14 @@ def _build_chart_data(points: list[PhasePoint]) -> ChartData:
         # `phase_score` field now semantically holds the LSD value
         lsd_series.append(TimeValue(time=ts, value=p.phase_score))
 
-    last_updated = datetime.now(timezone.utc)
+    # lastUpdated tracks the most recent timestamp in the series
+    if points:
+        latest_ts = max(p.timestamp for p in points)
+        if latest_ts.tzinfo is None:
+            latest_ts = latest_ts.replace(tzinfo=timezone.utc)
+        last_updated = latest_ts
+    else:
+        last_updated = datetime.now(timezone.utc)
 
     # Use the shared evaluation logic so dataQuality semantics are consistent
     # with the architecture and unit tests.
@@ -106,22 +119,70 @@ def main() -> None:
     mode = get_pipeline_mode()
 
     if mode == "provider":
-        points, lth_series = _load_points_from_provider()
+        points, lth_series, provider = _load_points_from_provider()
     else:
         # Default / fixture mode preserves existing behavior for tests and
         # local runs that do not configure a provider.
         points = _load_fixture_points()
         lth_series = None
-    
+        provider = None
+
     # Compute phase scores using scoring module
     scoring_config = get_scoring_config()
-    phase_scores = compute_phase_score(points, scoring_config, lth_series=lth_series)
-    
+
+    if mode == "provider" and isinstance(provider, ChartInspectMarketDataProvider):
+        # Use LSD scoring based on aligned SOPR/MVRV from ChartInspect.
+        aligned = provider.aligned_frame
+        lsd_series = compute_lsd(
+            aligned["lth_sopr"],
+            aligned["lth_mvrv"],
+        )
+        # Map LSD values onto PhasePoints by timestamp.
+        lsd_by_ts = {
+            ts if isinstance(ts, datetime) else pd.to_datetime(ts).to_pydatetime(): float(v)
+            for ts, v in lsd_series.items()
+            if not pd.isna(v)
+        }
+        phase_scores: list[float] = []
+        for p in points:
+            ts = p.timestamp
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            phase_scores.append(lsd_by_ts.get(ts, 50.0))
+    else:
+        phase_scores = compute_phase_score(points, scoring_config, lth_series=lth_series)
+
     # Enrich points with computed scores and zones
     enriched_points = enrich_phase_points_with_zones(points, phase_scores, scoring_config)
-    
-    # Build chart data from enriched points
-    chart_data = _build_chart_data(enriched_points)
+
+    # Update LSD history on disk and build a window for the frontend
+    history_df = update_lsd_history(enriched_points)
+
+    # Select a recent window for chart-data.json (defaults to ~850 days)
+    window_days = int(os.getenv("TT_LSD_WINDOW_DAYS", "850"))
+    if not history_df.empty:
+        history_df["timestamp"] = pd.to_datetime(history_df["timestamp"], utc=True)
+        cutoff = history_df["timestamp"].max() - timedelta(days=window_days)
+        window_df = history_df[history_df["timestamp"] >= cutoff].copy()
+    else:
+        window_df = history_df
+
+    window_points: list[PhasePoint] = []
+    for _, row in window_df.iterrows():
+        ts = row["timestamp"]
+        if isinstance(ts, datetime) and ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        window_points.append(
+            PhasePoint(
+                timestamp=ts,
+                btc_price=float(row["btc_price"]),
+                phase_score=float(row["lsd"]),
+                zone="neutral",  # zone isn’t needed for chart output
+            )
+        )
+
+    # Build chart data from history window (canonical external representation)
+    chart_data = _build_chart_data(window_points)
 
     out_dir = Path("pipeline/out")
     out_dir.mkdir(parents=True, exist_ok=True)

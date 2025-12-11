@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence
 
+import os
+
 import pandas as pd
 
 from . import MarketDataProvider, MarketSeriesPoint
@@ -70,6 +72,32 @@ class ChartInspectMarketDataProvider(MarketDataProvider):
             aligned["btc_price"] = btc_price.reindex(aligned.index)
 
         self._aligned = aligned.dropna()
+
+    @property
+    def aligned_frame(self) -> pd.DataFrame:
+        """Return the aligned SOPR/MVRV/BTC frame used for LSD computation."""
+
+        return self._aligned.copy()
+
+    @classmethod
+    def from_config(cls) -> "ChartInspectMarketDataProvider":
+        """Construct provider by fetching live ChartInspect data.
+
+        This is an opt-in path controlled by config/env. Tests should
+        monkeypatch the underlying fetch helper rather than performing
+        live HTTP calls.
+        """
+
+        from market_phase_score import fetch_chartinspect_data
+
+        base = os.getenv("TT_CHARTINSPECT_BASE_URL", "https://chartinspect.com/api/charts")
+        sopr_url = f"{base}/onchain/lth-sopr"
+        mvrv_url = f"{base}/onchain/lth-mvrv?timeframe=all"
+
+        sopr_df = fetch_chartinspect_data(sopr_url, "LTH-SOPR")
+        mvrv_df = fetch_chartinspect_data(mvrv_url, "LTH-MVRV")
+
+        return cls(sopr_df=sopr_df, mvrv_df=mvrv_df)
 
     def get_btc_price_series(self) -> Sequence[MarketSeriesPoint]:
         series: list[MarketSeriesPoint] = []

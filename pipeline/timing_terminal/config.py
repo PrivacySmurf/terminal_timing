@@ -28,22 +28,22 @@ def get_market_data_provider() -> MarketDataProvider:
     """Factory for MarketDataProvider instances.
 
     In fixture mode we return the in-memory provider used in earlier
-    stories. In provider mode, Story 1.6 will construct a provider
-    from real ChartInspect dataframes (wired at a higher level).
+    stories. In provider mode, we *optionally* construct a
+    ChartInspect-backed provider when explicitly enabled via
+    environment.
 
-    Note:
-        This function currently returns the in-memory provider in both
-        modes. Story 1.6 will later extend the wiring so that provider
-        mode can be backed by `ChartInspectMarketDataProvider` with
-        pre-loaded SOPR/MVRV data. Keeping this branch explicit makes
-        that migration straightforward.
+    Env flags:
+        TT_CHARTINSPECT_MODE = "live" | "fixture" (default "fixture")
     """
 
     mode = get_pipeline_mode()
     if mode == "provider":
-        # Placeholder for ChartInspect-backed provider wiring; for now,
-        # still use in-memory provider to avoid behavior changes until
-        # LSD integration is fully implemented.
+        ci_mode = os.getenv("TT_CHARTINSPECT_MODE", "fixture").lower()
+        if ci_mode == "live":
+            # Live ChartInspect integration; tests should monkeypatch
+            # ChartInspectMarketDataProvider.from_config or the
+            # underlying fetch helper to remain deterministic.
+            return ChartInspectMarketDataProvider.from_config()
         return InMemoryFixtureProvider()
     return InMemoryFixtureProvider()
 
