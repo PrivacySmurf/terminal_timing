@@ -133,22 +133,32 @@ def main() -> None:
     if mode == "provider" and isinstance(provider, ChartInspectMarketDataProvider):
         # Use LSD scoring based on aligned SOPR/MVRV from ChartInspect.
         aligned = provider.aligned_frame
+        print(f"DEBUG: aligned frame shape={aligned.shape}, columns={list(aligned.columns)}")
+        print(f"DEBUG: aligned index sample (first 3): {list(aligned.index[:3])}")
         lsd_series = compute_lsd(
             aligned["lth_sopr"],
             aligned["lth_mvrv"],
         )
+        print(f"DEBUG: lsd_series length={len(lsd_series)}, sample values: {list(lsd_series.head(3))}")
         # Map LSD values onto PhasePoints by timestamp.
         lsd_by_ts = {
             ts if isinstance(ts, datetime) else pd.to_datetime(ts).to_pydatetime(): float(v)
             for ts, v in lsd_series.items()
             if not pd.isna(v)
         }
+        print(f"DEBUG: lsd_by_ts keys sample (first 3): {list(lsd_by_ts.keys())[:3]}")
+        print(f"DEBUG: points[0].timestamp = {points[0].timestamp}, type={type(points[0].timestamp)}")
         phase_scores: list[float] = []
+        matches = 0
         for p in points:
             ts = p.timestamp
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
-            phase_scores.append(lsd_by_ts.get(ts, 50.0))
+            score = lsd_by_ts.get(ts, 50.0)
+            if score != 50.0:
+                matches += 1
+            phase_scores.append(score)
+        print(f"DEBUG: timestamp matches={matches}/{len(points)}")
     else:
         phase_scores = compute_phase_score(points, scoring_config, lth_series=lth_series)
 
