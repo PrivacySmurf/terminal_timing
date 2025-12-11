@@ -16,6 +16,7 @@ dependencies = [
   "PyYAML>=6.0.0",
   "pytest>=8.0.0",
   "requests>=2.32.5",
+  "scipy>=1.16.3",
 ]
 
 [project.scripts]

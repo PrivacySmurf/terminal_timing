@@ -19,6 +19,33 @@ import numpy as np
 import pandas as pd
 
 
+def _savitzky_golay_smooth(series: pd.Series, window: int = 21, poly_order: int = 3) -> pd.Series:
+    """Apply Savitzky-Golay filter for smoothing while preserving peaks/troughs.
+
+    This matches the `market_phase_savgol` smoothing from the research script.
+    """
+    from scipy.signal import savgol_filter
+
+    # Ensure window is odd
+    if window % 2 == 0:
+        window += 1
+
+    # Need at least window length of data
+    if len(series) < window:
+        return series
+
+    # Handle NaN values
+    valid_mask = ~series.isna()
+    if valid_mask.sum() < window:
+        return series
+
+    smoothed = series.copy()
+    smoothed[valid_mask] = savgol_filter(series[valid_mask], window, poly_order)
+
+    # Clip again after smoothing to ensure 0-100 range
+    return smoothed.clip(0.0, 100.0)
+
+
 def _percentile_rank(series: pd.Series, window: int) -> pd.Series:
     """Rolling percentile rank of the latest value within the window.
 
@@ -84,5 +111,8 @@ def compute_lsd(
 
     # Clip to [0, 100]
     score = score.clip(0.0, 100.0)
+
+    # Apply Savitzky-Golay smoothing (canonical series per Story 1.6 AC3)
+    score = _savitzky_golay_smooth(score, window=21, poly_order=3)
 
     return score
