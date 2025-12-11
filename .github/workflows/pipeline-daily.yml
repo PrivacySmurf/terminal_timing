@@ -9,6 +9,8 @@ on:
 jobs:
   test-and-run-pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     env:
       # Default to fixture mode; can be overridden via a GitHub Actions variable
@@ -45,6 +47,8 @@ jobs:
           TT_PIPELINE_MODE: ${{ env.TT_PIPELINE_MODE }}
           TT_CHARTINSPECT_MODE: ${{ env.TT_CHARTINSPECT_MODE }}
         run: |
+          echo "TT_PIPELINE_MODE=$TT_PIPELINE_MODE"
+          echo "TT_CHARTINSPECT_MODE=$TT_CHARTINSPECT_MODE"
           uv run timing-terminal-pipeline
 
       - name: Copy output to web directory
