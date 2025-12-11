@@ -69,6 +69,8 @@ def test_cli_can_emit_partial_data_quality(tmp_path, monkeypatch):
         return points
 
     monkeypatch.chdir(tmp_path)
+    # Force fixture mode so monkeypatch of _load_fixture_points is used
+    monkeypatch.setenv("TT_PIPELINE_MODE", "fixture")
     monkeypatch.setattr(cli, "_load_fixture_points", _partial_points)
 
     cli.main()
@@ -102,6 +104,8 @@ def test_cli_can_emit_stale_data_quality(tmp_path, monkeypatch):
         return points
 
     monkeypatch.chdir(tmp_path)
+    # Force fixture mode so monkeypatch of _load_fixture_points is used
+    monkeypatch.setenv("TT_PIPELINE_MODE", "fixture")
     monkeypatch.setattr(cli, "_load_fixture_points", _stale_points)
 
     cli.main()
