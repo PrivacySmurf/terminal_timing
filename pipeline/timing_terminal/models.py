@@ -11,7 +11,13 @@ DataQuality = Literal["complete", "partial", "stale"]
 
 @dataclass
 class PhasePoint:
-    """Single point in time for BTC price and phase score."""
+    """Single point in time for BTC price and LSD value.
+
+    Note:
+        The `phase_score` field name is kept for backwards compatibility
+        with earlier stories, but semantically it now represents the
+        LTH Supply Dynamics (LSD) value in [0, 100].
+    """
 
     timestamp: datetime
     btc_price: float
@@ -27,10 +33,14 @@ class TimeValue:
 
 @dataclass
 class ChartData:
-    """In-memory representation of chart-data.json."""
+    """In-memory representation of chart-data.json.
+
+    The second series now represents **LTH Supply Dynamics (LSD)**,
+    exported under the `lsd` key in the JSON payload.
+    """
 
     btc_price: List[TimeValue]
-    phase_score: List[TimeValue]
+    lsd: List[TimeValue]
     last_updated: datetime
     data_quality: DataQuality
 
@@ -44,8 +54,8 @@ class ChartData:
             "btcPrice": [
                 {"time": tv.time, "value": float(tv.value)} for tv in self.btc_price
             ],
-            "phaseScore": [
-                {"time": tv.time, "value": float(tv.value)} for tv in self.phase_score
+            "lsd": [
+                {"time": tv.time, "value": float(tv.value)} for tv in self.lsd
             ],
             "lastUpdated": ts.isoformat() + "Z",
             "dataQuality": self.data_quality,

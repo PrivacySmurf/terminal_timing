@@ -13,17 +13,17 @@ def test_chart_data_to_json_dict_structure():
 
     chart = ChartData(
         btc_price=btc_series,
-        phase_score=phase_series,
+        lsd=phase_series,
         last_updated=last_updated,
         data_quality="complete",
     )
 
     payload = chart.to_json_dict()
 
-    assert set(payload.keys()) == {"btcPrice", "phaseScore", "lastUpdated", "dataQuality"}
+    assert set(payload.keys()) == {"btcPrice", "lsd", "lastUpdated", "dataQuality"}
 
     assert payload["btcPrice"] == [{"time": ts, "value": 29000.5}]
-    assert payload["phaseScore"] == [{"time": ts, "value": 45.2}]
+    assert payload["lsd"] == [{"time": ts, "value": 45.2}]
 
     assert payload["lastUpdated"] == "2025-12-05T08:15:00Z"
     assert payload["dataQuality"] == "complete"

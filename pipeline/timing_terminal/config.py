@@ -5,6 +5,7 @@ from typing import Literal
 
 from .providers.inmemory import InMemoryFixtureProvider
 from .providers import MarketDataProvider
+from .providers.chartinspect import ChartInspectMarketDataProvider
 from .scoring import ScoringConfig
 
 
@@ -26,17 +27,24 @@ def get_pipeline_mode() -> PipelineMode:
 def get_market_data_provider() -> MarketDataProvider:
     """Factory for MarketDataProvider instances.
 
-    For Story 1.4 MVP, only an in-memory fixture provider is wired,
-    but the abstraction allows later addition of file-backed or HTTP providers.
+    In fixture mode we return the in-memory provider used in earlier
+    stories. In provider mode, Story 1.6 will construct a provider
+    from real ChartInspect dataframes (wired at a higher level).
+
+    Note:
+        This function currently returns the in-memory provider in both
+        modes. Story 1.6 will later extend the wiring so that provider
+        mode can be backed by `ChartInspectMarketDataProvider` with
+        pre-loaded SOPR/MVRV data. Keeping this branch explicit makes
+        that migration straightforward.
     """
 
     mode = get_pipeline_mode()
-    # For now, provider mode still uses the same in-memory fixture provider;
-    # future stories can branch here based on provider type.
     if mode == "provider":
+        # Placeholder for ChartInspect-backed provider wiring; for now,
+        # still use in-memory provider to avoid behavior changes until
+        # LSD integration is fully implemented.
         return InMemoryFixtureProvider()
-    # In fixture mode, the CLI continues to use its existing fixture path,
-    # but tests can still exercise this provider directly.
     return InMemoryFixtureProvider()
 
 

@@ -28,14 +28,14 @@ def test_cli_generates_chart_data_json(tmp_path, monkeypatch):
     data = json.loads(out_path.read_text(encoding="utf-8"))
 
     # Basic schema checks
-    assert set(data.keys()) == {"btcPrice", "phaseScore", "lastUpdated", "dataQuality"}
+    assert set(data.keys()) == {"btcPrice", "lsd", "lastUpdated", "dataQuality"}
 
     assert isinstance(data["btcPrice"], list) and data["btcPrice"], "btcPrice should be non-empty list"
-    assert isinstance(data["phaseScore"], list) and data["phaseScore"], "phaseScore should be non-empty list"
+    assert isinstance(data["lsd"], list) and data["lsd"], "lsd should be non-empty list"
 
     # Time alignment: lengths must match and times correspond
-    assert len(data["btcPrice"]) == len(data["phaseScore"])
-    for p_entry, s_entry in zip(data["btcPrice"], data["phaseScore"], strict=True):
+    assert len(data["btcPrice"]) == len(data["lsd"])
+    for p_entry, s_entry in zip(data["btcPrice"], data["lsd"], strict=True):
         assert p_entry["time"] == s_entry["time"]
 
     assert data["dataQuality"] in {"complete", "partial", "stale"}
@@ -129,22 +129,22 @@ def test_cli_computes_phase_scores_using_scoring_module(tmp_path, monkeypatch):
     
     data = json.loads(out_path.read_text(encoding="utf-8"))
     
-    # Verify phaseScore array exists and is non-empty
-    assert "phaseScore" in data
-    assert len(data["phaseScore"]) > 0
+    # Verify lsd array exists and is non-empty
+    assert "lsd" in data
+    assert len(data["lsd"]) > 0
     
     # Verify time alignment with btcPrice
-    assert len(data["btcPrice"]) == len(data["phaseScore"])
-    for btc_entry, score_entry in zip(data["btcPrice"], data["phaseScore"], strict=True):
+    assert len(data["btcPrice"]) == len(data["lsd"])
+    for btc_entry, score_entry in zip(data["btcPrice"], data["lsd"], strict=True):
         assert btc_entry["time"] == score_entry["time"], "Time alignment broken"
     
     # Verify all scores are valid (0-100 range)
-    for score_entry in data["phaseScore"]:
+    for score_entry in data["lsd"]:
         score_value = score_entry["value"]
         assert 0.0 <= score_value <= 100.0, f"Score {score_value} out of bounds"
     
     # Verify scores are not all the same (should have variation based on price movement)
-    score_values = [s["value"] for s in data["phaseScore"]]
+    score_values = [s["value"] for s in data["lsd"]]
     # With fixture prices [40000, 42000, 45000, 43000], scores should vary
     assert len(set(score_values)) > 1, "All scores are identical (scoring not working)"
 
@@ -167,7 +167,7 @@ def test_cli_provider_mode_works_with_provider_and_lth(tmp_path, monkeypatch):
     data = json.loads(out_path.read_text(encoding="utf-8"))
 
     # Basic schema checks still hold
-    assert set(data.keys()) == {"btcPrice", "phaseScore", "lastUpdated", "dataQuality"}
+    assert set(data.keys()) == {"btcPrice", "lsd", "lastUpdated", "dataQuality"}
     assert isinstance(data["btcPrice"], list) and data["btcPrice"], "btcPrice should be non-empty list"
-    assert isinstance(data["phaseScore"], list) and data["phaseScore"], "phaseScore should be non-empty list"
-    assert len(data["btcPrice"]) == len(data["phaseScore"])
+    assert isinstance(data["lsd"], list) and data["lsd"], "lsd should be non-empty list"
+    assert len(data["btcPrice"]) == len(data["lsd"])

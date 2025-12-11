@@ -73,11 +73,12 @@ def _load_points_from_provider() -> tuple[list[PhasePoint], list[float] | None]:
     return points, lth_series
 def _build_chart_data(points: list[PhasePoint]) -> ChartData:
     btc_price_series: list[TimeValue] = []
-    phase_series: list[TimeValue] = []
+    lsd_series: list[TimeValue] = []
     for p in points:
         ts = int(p.timestamp.timestamp())
         btc_price_series.append(TimeValue(time=ts, value=p.btc_price))
-        phase_series.append(TimeValue(time=ts, value=p.phase_score))
+        # `phase_score` field now semantically holds the LSD value
+        lsd_series.append(TimeValue(time=ts, value=p.phase_score))
 
     last_updated = datetime.now(timezone.utc)
 
@@ -88,7 +89,7 @@ def _build_chart_data(points: list[PhasePoint]) -> ChartData:
 
     return ChartData(
         btc_price=btc_price_series,
-        phase_score=phase_series,
+        lsd=lsd_series,
         last_updated=last_updated,
         data_quality=data_quality,
     )
