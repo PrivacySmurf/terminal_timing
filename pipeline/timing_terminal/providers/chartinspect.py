@@ -15,21 +15,77 @@ NOTE: Tests should NOT hit the live ChartInspect API. Instead, they
 will monkeypatch or feed this provider with recorded JSON fixtures.
 """
 
+import logging
+import os
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence
 
-import os
-
 import pandas as pd
+import requests
 
 from . import MarketDataProvider, MarketSeriesPoint
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ChartInspectConfig:
     sopr_url: str
     mvrv_url: str
+    timeout: int = 30
+    max_retries: int = 3
+
+
+def fetch_chartinspect_data(url: str, metric_name: str, timeout: int = 30, max_retries: int = 3) -> pd.DataFrame:
+    """Fetch data from ChartInspect API with retry logic.
+
+    Ported from market_phase_score.py for self-contained provider usage.
+    Caching is omitted since the pipeline runs daily via CI.
+
+    Args:
+        url: ChartInspect API endpoint URL
+        metric_name: Human-readable name for logging
+        timeout: Request timeout in seconds
+        max_retries: Number of retry attempts on failure
+
+    Returns:
+        DataFrame with datetime index and metric columns
+
+    Raises:
+        RuntimeError: If all retry attempts fail
+    """
+    logger.info(f"Fetching {metric_name} from ChartInspect...")
+
+    last_error: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, timeout=timeout)
+            response.raise_for_status()
+            data = response.json()
+
+            if "data" in data and isinstance(data["data"], list):
+                df = pd.DataFrame(data["data"])
+                # Try timestamp (ms) first, fall back to date string
+                try:
+                    df["date"] = pd.to_datetime(df["date"], unit="ms", utc=True)
+                except (ValueError, TypeError):
+                    df["date"] = pd.to_datetime(df["date"], utc=True)
+                df.set_index("date", inplace=True)
+                df.sort_index(inplace=True)
+                logger.info(f"Fetched {len(df)} records for {metric_name}")
+                return df
+            else:
+                raise ValueError(f"Unexpected data format from {url}")
+
+        except Exception as e:
+            last_error = e
+            logger.warning(f"Attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(2**attempt)  # exponential backoff
+
+    raise RuntimeError(f"Failed to fetch {metric_name} after {max_retries} attempts: {last_error}")
 
 
 class ChartInspectMarketDataProvider(MarketDataProvider):
@@ -87,9 +143,6 @@ class ChartInspectMarketDataProvider(MarketDataProvider):
         monkeypatch the underlying fetch helper rather than performing
         live HTTP calls.
         """
-
-        from market_phase_score import fetch_chartinspect_data
-
         base = os.getenv("TT_CHARTINSPECT_BASE_URL", "https://chartinspect.com/api/charts")
         sopr_url = f"{base}/onchain/lth-sopr"
         mvrv_url = f"{base}/onchain/lth-mvrv?timeframe=all"
