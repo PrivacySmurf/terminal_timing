@@ -49,7 +49,7 @@ jobs:
 
       - name: Copy output to web directory
         run: |
-          cp pipeline/out/chart-data.json web/chart-data.json
+          cp pipeline/pipeline/out/chart-data.json web/chart-data.json
           echo "Copied chart-data.json to web/"
 
       - name: Commit and push updated chart data
