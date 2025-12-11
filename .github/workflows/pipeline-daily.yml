@@ -13,13 +13,12 @@ jobs:
     env:
       # Default to fixture mode; can be overridden via a GitHub Actions variable
       # Set repository/organization variable `TT_PIPELINE_MODE=provider` to
-      # exercise the provider-backed path (currently still using the in-memory
-      # provider abstraction).
+      # exercise the provider-backed path.
       TT_PIPELINE_MODE: ${{ vars.TT_PIPELINE_MODE || 'fixture' }}
 
-      # Provider-specific API keys / URLs will be introduced when a real HTTP
-      # provider is added; no external credentials are required for the current
-      # in-memory provider.
+      # Set `TT_CHARTINSPECT_MODE=live` to fetch real data from ChartInspect API.
+      # When omitted or set to 'fixture', uses in-memory test data.
+      TT_CHARTINSPECT_MODE: ${{ vars.TT_CHARTINSPECT_MODE || 'fixture' }}
 
     steps:
       - name: Checkout repository
@@ -40,10 +39,11 @@ jobs:
           chmod +x ./run-tests
           ./run-tests
 
-      - name: Run pipeline CLI (fixture mode by default)
+      - name: Run pipeline CLI
         working-directory: ./pipeline
         env:
           TT_PIPELINE_MODE: ${{ env.TT_PIPELINE_MODE }}
+          TT_CHARTINSPECT_MODE: ${{ env.TT_CHARTINSPECT_MODE }}
         run: |
           uv run timing-terminal-pipeline
 
