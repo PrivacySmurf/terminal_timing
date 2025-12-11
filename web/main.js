@@ -27,9 +27,12 @@
       }
       const data = await res.json();
 
-      if (!data || !Array.isArray(data.btcPrice) || !Array.isArray(data.phaseScore)) {
+      // Support both new 'lsd' field and legacy 'phaseScore'
+      const lsdData = data.lsd || data.phaseScore;
+      if (!data || !Array.isArray(data.btcPrice) || !Array.isArray(lsdData)) {
         throw new Error('Invalid chart-data.json schema');
       }
+      data.lsd = lsdData;
 
       renderChart(data);
       const lastUpdated = data.lastUpdated || 'unknown time';
@@ -42,7 +45,7 @@
 
   function renderChart(data) {
     const priceData = toSeriesData(data.btcPrice || []);
-    const phaseData = toSeriesData(data.phaseScore || []);
+    const phaseData = toSeriesData(data.lsd || data.phaseScore || []);
 
     if (priceData.length === 0 || phaseData.length === 0) {
       throw new Error('Empty series in chart-data.json');
